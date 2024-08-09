@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .cart-container {
+            width: 70%;
+            margin: 50px auto;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .cart-header {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+        .cart-item .delete-btn {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            color: #FF6347;
+            font-size: 18px;
+        }
+        .cart-summary {
+            text-align: right;
+            margin-top: 20px;
+        }
+        .place-order-btn {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cart-container">
+        <div class="cart-header">Cart</div>
+        <div id="cartItems">
+            <!-- Cart Items will be dynamically inserted here -->
+        </div>
+        <div class="cart-summary">
+            <div>Order MRP Value: <span id="mrpValue">1500</span></div>
+            <div>Order Value: <span id="orderValue">1000</span></div>
+        </div>
+        <div class="cart-summary">
+            <button class="place-order-btn">Place Order</button>
+        </div>
+    </div>
+
+    <script>
+      const uploadResult = localStorage.getItem('uploadResult');
+      let objectArray = JSON.parse(uploadResult)
+      console.log(objectArray.objectArray)
+      const items = objectArray.objectArray
+        const cartItemsContainer = document.getElementById('cartItems');
+
+        function renderCartItems() {
+            cartItemsContainer.innerHTML = '';
+            items.forEach((item, index) => {
+                const cartItem = document.createElement('div');
+                cartItem.className = 'cart-item';
+                cartItem.innerHTML = `
+                    <div>
+                        <strong>${item.name}</strong><br>
+                        PTR: ${0} | MRP: ${item.mrp}
+                    </div>
+                    <button class="delete-btn" onclick="removeItem(${index})">🗑️</button>
+                `;
+                cartItemsContainer.appendChild(cartItem);
+            });
+        }
+
+        function removeItem(index) {
+            items.splice(index, 1);
+            renderCartItems();
+            updateCartValues();
+        }
+
+        function updateCartValues() {
+            const totalMRP = items.reduce((acc, item) => acc + parseFloat(item?.mrp ?? '0'), 0);
+            const totalPTR = items.reduce((acc, item) => acc + item.ptr, 0);
+
+            document.getElementById('mrpValue').textContent = totalMRP;
+            document.getElementById('orderValue').textContent = 0;
+        }
+
+        // Initial render
+        renderCartItems();
+        updateCartValues();
+    </script>
+
+</body>
+</html>
