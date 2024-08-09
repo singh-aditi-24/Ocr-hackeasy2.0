@@ -85,7 +85,7 @@
                 cartItem.innerHTML = `
                     <div>
                         <strong>${item.name}</strong><br>
-                        PTR: ${0} | MRP: ${item.mrp}
+                        PTR: ${item.mrp*0.875} | MRP: ${item.mrp}
                     </div>
                     <button class="delete-btn" onclick="removeItem(${index})">🗑️</button>
                 `;
@@ -101,7 +101,7 @@
 
         function updateCartValues() {
             const totalMRP = items.reduce((acc, item) => acc + parseFloat(item?.mrp ?? '0'), 0);
-            const totalPTR = items.reduce((acc, item) => acc + item.ptr, 0);
+            const totalPTR = items.reduce((acc, item) => acc + parseFloat(item?.mrp ?? '0')*0.875, 0);
 
             document.getElementById('mrpValue').textContent = totalMRP;
             document.getElementById('orderValue').textContent = 0;

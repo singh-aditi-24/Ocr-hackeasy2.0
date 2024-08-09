@@ -116,14 +116,29 @@ app.post('/upload', upload.single('image'), (req, res) => {
         return result;
       })
       Promise.all(promises)
-      .then((results) => {
-        const objectArray = results.map(it => ({ name: it.data?.mdmName, mrp: it.data?.mrp }));
-        res.json({ objectArray });
-      })
-    })
-    .catch(error => {
-      console.error('Error:', error.response ? error.response.data : error.message);
-    });
+        .then(async (results) => {
+          // Use map to return a new array of promises
+          const updatedResults = await Promise.all(
+            results.map(async (it) => {
+              it.db = await getRowByUUID(it.data.mdmUid);
+              console.log("it.db ", it.db)
+              return it;
+            })
+          );
+          return updatedResults;
+        })
+        .then((updatedResults) => {
+          // Map the updated results to the desired format
+          const objectArray = updatedResults.map(it => ({
+            name: it.db?.product_name ?? it.data?.mdmName,
+            mrp: it.data?.mrp
+          }));
+          res.json({ objectArray });
+        })})
+        .catch(error => {
+          console.error('Error:', error.response ? error.response.data : error.message);
+          res.status(500).send("An error occurred");
+        });
 });
 
 
@@ -136,10 +151,11 @@ async function fetchAndStoreData(searchParam) {
   try {
     // Hit the external API
     const response = axios.get(`https://stark.internal.healthiviti.com/xnLite?name=${searchParam}.`);
-    // const data = response.data;
 
+    
     // Print the response
     // console.log('API Response:', data.mdmName);
+    
     return response;
 
     // Insert the data into the PostgreSQL database
@@ -160,4 +176,20 @@ async function fetchAndStoreData(searchParam) {
     console.error('Error fetching or storing data:', error);
   }
 }
-
+async function getRowByUUID(uuid) {
+  console.log("uuid ", uuid)
+  const query = `SELECT * FROM distributor_mdm_product_mapping WHERE mdm_uid = '${uuid}'`;
+  
+  try {
+    const result = await pool.query(query);
+    
+    if (result.rows.length > 0) {
+      return result.rows[0];
+    } else {
+      return null; // or throw an error if you prefer
+    }
+  } catch (err) {
+    console.error('Error executing query', err);
+    throw err;
+  }
+}
